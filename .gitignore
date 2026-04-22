@@ -1,16 +1,6 @@
 # ─── Secrets ────────────────────────────────────────────────────────────────
 .env
 
-# ─── Java / Spring Boot ─────────────────────────────────────────────────────
-target/
-*.class
-*.jar
-*.war
-*.ear
-.mvn/
-!.mvn/wrapper/maven-wrapper.jar
-spring-shell.log
-
 # ─── Python / AI Service ────────────────────────────────────────────────────
 __pycache__/
 *.pyc
@@ -47,9 +37,3 @@ logs/
 .pytest_cache/
 htmlcov/
 .coverage
-
-# ─── Other ───────────────────────────────────────────────────────────
-p-README.md
-p-PROJECT_SPEC.md
-p-DIARY_ENTRY.md
-git_migration_log.md
