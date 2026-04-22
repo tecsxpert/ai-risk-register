@@ -1,0 +1,55 @@
+# ─── Secrets ────────────────────────────────────────────────────────────────
+.env
+
+# ─── Java / Spring Boot ─────────────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+spring-shell.log
+
+# ─── Python / AI Service ────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# ─── ChromaDB ───────────────────────────────────────────────────────────────
+chroma_data/
+
+# ─── Node / React / Vite ────────────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+
+# ─── IDE / OS ────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ─── Logs ───────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Test / Coverage ────────────────────────────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+
+# ─── Other ───────────────────────────────────────────────────────────
+p-README.md
+p-PROJECT_SPEC.md
+p-DIARY_ENTRY.md
+git_migration_log.md
