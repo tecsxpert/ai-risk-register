@@ -6,6 +6,8 @@ from flask_limiter.util import get_remote_address
 
 # I am importing my blueprints here
 from routes.describe import describe_bp
+from routes.recommend import recommend_bp
+from services.chroma_client import get_model
 
 # I need to ensure load_dotenv() is called at the very top before any os.getenv() calls
 load_dotenv()
@@ -24,7 +26,10 @@ def create_app():
     
     # Registering my blueprints so the routes are available
     app.register_blueprint(describe_bp)
-    # I'll be registering recommend_bp and others here once I build them!
+    app.register_blueprint(recommend_bp)
+    
+    # I am pre-loading the SentenceTransformer model at startup so the first request isn't terribly slow!
+    get_model()
     
     @app.route('/health')
     def health():
