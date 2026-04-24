@@ -1,45 +1,79 @@
-import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoginPage from "./pages/LoginPage";
 import RiskListPage from "./pages/RiskListPage";
 import RiskFormPage from "./pages/RiskFormPage";
-import { mockRisks } from "./services/mockData";
 
 function App() {
-  const [risks, setRisks] = useState(mockRisks);
-
-  const addRisk = (newRisk) => {
-    setRisks((prev) => [
-      ...prev,
-      {
-        ...newRisk,
-        id: prev.length + 1,
-        createdDate: new Date().toISOString().split("T")[0],
-      },
-    ]);
-  };
-
-  const updateRisk = (id, updatedRisk) => {
-    setRisks((prev) =>
-      prev.map((r) => (r.id === parseInt(id) ? { ...r, ...updatedRisk } : r))
-    );
-  };
-
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Navigate to="/risks" />} />
-          <Route path="/risks" element={<RiskListPage risks={risks} />} />
-          <Route path="/create" element={<RiskFormPage onSubmit={addRisk} />} />
-          <Route
-            path="/risks/:id/edit"
-            element={<RiskFormPage risks={risks} onSubmit={updateRisk} />}
-          />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<Navigate to="/risks" replace />} />
+
+            {/* Protected routes */}
+            <Route
+              path="/risks"
+              element={
+                <ProtectedRoute>
+                  <RiskListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/risks/:id"
+              element={
+                <ProtectedRoute>
+                  {/* Detail page — coming Day 7 */}
+                  <div className="p-6 text-gray-500">Detail page coming soon...</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create"
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+                  <RiskFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/risks/:id/edit"
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+                  <RiskFormPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 404 fallback */}
+            <Route
+              path="*"
+              element={
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="text-6xl mb-4">404</p>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">Page Not Found</h2>
+                    <button
+                      onClick={() => window.location.href = "/risks"}
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      Go back home
+                    </button>
+                  </div>
+                </div>
+              }
+            />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
