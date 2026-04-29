@@ -1,39 +1,24 @@
-# ─── Secrets ────────────────────────────────────────────────────────────────
-.env
-
-# ─── Python / AI Service ────────────────────────────────────────────────────
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-.venv/
-venv/
-env/
-*.egg-info/
-dist/
-build/
-
-# ─── ChromaDB ───────────────────────────────────────────────────────────────
-chroma_data/
-
-# ─── Node / React / Vite ────────────────────────────────────────────────────
-node_modules/
-dist/
-.vite/
-
-# ─── IDE / OS ────────────────────────────────────────────────────────────────
-.idea/
-.vscode/
-*.iml
-.DS_Store
-Thumbs.db
-
-# ─── Logs ───────────────────────────────────────────────────────────────────
+# Logs
+logs
 *.log
-logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# ─── Test / Coverage ────────────────────────────────────────────────────────
-.pytest_cache/
-htmlcov/
-.coverage
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
