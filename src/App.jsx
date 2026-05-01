@@ -8,6 +8,7 @@ import RiskFormPage from "./pages/RiskFormPage";
 import DashboardPage from "./pages/DashboardPage";
 import RiskDetailPage from "./pages/RiskDetailPage";
 import AiPanel from "./components/AiPanel";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 function App() {
   return (
@@ -75,16 +76,13 @@ function App() {
 
             {/* Analytics — coming Day 10 */}
             <Route
-              path="/analytics"
-              element={
-                <ProtectedRoute>
-                  <div className="p-6 text-gray-500 text-center mt-20">
-                    <p className="text-5xl mb-4">📊</p>
-                    <p className="text-xl font-bold text-gray-700">Analytics page coming Day 10...</p>
-                  </div>
-                </ProtectedRoute>
-              }
-            />
+  path="/analytics"
+  element={
+    <ProtectedRoute>
+      <AnalyticsPage />
+    </ProtectedRoute>
+  }
+/>
 
             {/* 404 fallback */}
             <Route

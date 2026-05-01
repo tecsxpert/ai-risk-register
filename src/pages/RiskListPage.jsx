@@ -8,6 +8,7 @@ import Pagination from "../components/Pagination";
 import SortIcon from "../components/SortIcon";
 import ConfirmModal from "../components/ConfirmModal";
 import SearchFilterBar from "../components/SearchFilterBar";
+import ExportButton from "../components/ExportButton";
 
 const COLUMNS = [
   { label: "Title", key: "title" },
@@ -140,20 +141,23 @@ const RiskListPage = () => {
     <div className="p-6 max-w-7xl mx-auto">
 
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Risk Register</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            {totalElements} total risks tracked
-          </p>
-        </div>
-        <button
-          onClick={() => navigate("/create")}
-          className="bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition text-sm"
-        >
-          + Add Risk
-        </button>
-      </div>
+<div className="flex justify-between items-center mb-6">
+  <div>
+    <h1 className="text-2xl font-bold text-gray-800">Risk Register</h1>
+    <p className="text-gray-500 text-sm mt-1">
+      {totalElements} total risks tracked
+    </p>
+  </div>
+  <div className="flex items-center gap-3">
+    <ExportButton risks={risks} />
+    <button
+      onClick={() => navigate("/create")}
+      className="bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition text-sm"
+    >
+      + Add Risk
+    </button>
+  </div>
+</div>
 
       {/* Search and Filter Bar */}
       <SearchFilterBar
