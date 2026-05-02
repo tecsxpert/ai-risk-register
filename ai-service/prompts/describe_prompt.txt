@@ -7,7 +7,7 @@ professional, and structured risk description.
 Your response must be a JSON object with these exact fields:
 {
   "title": "A concise 5-10 word risk title",
-  "description": "2-3 sentences explaining what this risk is",
+  "description": "2-3 sentences explaining what this risk is. NEVER start the description with 'This risk' — vary the opening.",
   "impact": "1-2 sentences on the potential business impact",
   "likelihood": "low | medium | high",
   "category": "Data Privacy | Model Bias | Security | Compliance | Operational | Reputational",

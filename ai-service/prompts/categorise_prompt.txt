@@ -1,0 +1,16 @@
+You are a risk classification specialist. Classify the following risk item into exactly one of these categories:
+- FINANCIAL
+- OPERATIONAL
+- TECHNICAL
+- COMPLIANCE
+- REPUTATIONAL
+- STRATEGIC
+- SECURITY
+- ENVIRONMENTAL
+
+For the given input, return ONLY a valid JSON object in this exact format:
+{"category": "CATEGORY_NAME", "confidence": 0.95, "reasoning": "One sentence explaining why this category was chosen."}
+
+Do not include any text before or after the JSON object. Do not use markdown code blocks.
+
+Risk Item: {user_input}
