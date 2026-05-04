@@ -1,24 +1,64 @@
-# Logs
-logs
+# ─── Secrets ────────────────────────────────────────────────────────────────
+.env
+
+# ─── Java / Spring Boot ─────────────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+spring-shell.log
+
+# ─── Python / AI Service ────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# ─── ChromaDB ───────────────────────────────────────────────────────────────
+chroma_data/
+
+# ─── Node / React / Vite ────────────────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr
+.vite/
+*.local
+
+# ─── IDE / OS ────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.iml
+.DS_Store
+Thumbs.db
+.gemini/
+.antigravity/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─── Logs ───────────────────────────────────────────────────────────────────
 *.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# ─── Test / Coverage ────────────────────────────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage

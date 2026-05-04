@@ -1,6 +1,10 @@
 import os
+import logging
 import chromadb
 from sentence_transformers import SentenceTransformer
+
+# Disable ChromaDB telemetry warnings
+os.environ['ANONYMIZED_TELEMETRY'] = 'False'
 
 # I am defining the persistent path for ChromaDB storage
 CHROMA_PATH = os.getenv('CHROMA_PATH', './chroma_data')
@@ -28,7 +32,7 @@ def get_collection():
     return _collection
 
 def query_knowledge_base(question: str, n=3) -> list[dict]:
-    # I am encoding the question and querying our RAG knowledge base
+    # I am encoding the question and querying my RAG knowledge base
     embedding = get_model().encode(question).tolist()
     results = get_collection().query(
         query_embeddings=[embedding], n_results=n,

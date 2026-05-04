@@ -11,13 +11,16 @@ def chunk_text(text, chunk_size=500, overlap=50):
 
 def ingest_document(text: str, source_name: str):
     collection = get_collection()
+    chunks = chunk_text(text)
     
-    # I am iterating through the chunks, embedding them, and storing them in ChromaDB
-    for chunk in chunk_text(text):
-        embedding = get_model().encode(chunk).tolist()
-        collection.add(
-            ids=[str(uuid.uuid4())],
-            embeddings=[embedding],
-            documents=[chunk],
-            metadatas=[{'source': source_name}]
-        )
+    # I am collecting all chunks and their embeddings for a single batch insert
+    ids = [str(uuid.uuid4()) for _ in chunks]
+    embeddings = [get_model().encode(chunk).tolist() for chunk in chunks]
+    metadatas = [{'source': source_name} for _ in chunks]
+    
+    collection.add(
+        ids=ids,
+        embeddings=embeddings,
+        documents=chunks,
+        metadatas=metadatas
+    )
