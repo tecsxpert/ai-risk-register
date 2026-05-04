@@ -1,145 +1,127 @@
-# Engineering Architecture — AI Risk Register
+# Engineering Blueprint: Building the AI Risk Register from Scratch
 
-This document provides a technical deep dive into the AI Risk Register system. It is designed for engineers and stakeholders to understand the underlying mechanics, data flows, and architectural decisions that drive our intelligent risk management platform.
-
----
-
-## 1. Overview
-The AI Risk Register is a distributed system designed to automate the identification, classification, and mitigation of organizational risks. In modern enterprises, risk data is often unstructured, siloed, and difficult to prioritize. This system solves that problem by using **Large Language Models (LLMs)** and **Retrieval-Augmented Generation (RAG)** to transform raw text into actionable intelligence.
-
-By decoupling the core business logic (Java/Spring Boot) from the specialized AI reasoning (Python/Flask), we achieve a highly scalable and resilient architecture capable of processing thousands of risks with millisecond-level retrieval times.
+This document is a comprehensive, step-by-step reconstruction guide for the AI Risk Register. I have written this for anyone—from a senior architect to a newcomer—to understand exactly **why** every file exists, **what** every line does, and **how** to rebuild this system from the ground up.
 
 ---
 
-## 2. System Architecture
+## Part 1: Project Philosophy & Foundation
 
-My architecture follows a modular, microservice-oriented design. The frontend interacts with the Java backend, which orchestrates data persistence and coordinates with the AI microservice for intelligence tasks.
+The goal of this system is to take messy, unstructured human text and turn it into high-quality, structured risk data. To do this, I chose a **Microservice Architecture**.
 
-```mermaid
-graph TD
-    User((User/UI)) -->|REST/JWT| Backend[Java Spring Boot Backend]
-    Backend -->|Persistence| MySQL[(MySQL DB)]
-    Backend -->|RPC/REST| AIService[Python Flask AI Service]
-    
-    subgraph "AI Microservice Intelligence Layer"
-        AIService -->|Cache Lookup| Redis[(Redis Cache)]
-        AIService -->|Vector Search| Chroma[(ChromaDB Vector Store)]
-        AIService -->|Reasoning| Groq[[Groq Cloud Llama 3.3]]
-    end
-    
-    subgraph "Knowledge Ingestion"
-        Docs(Policy Documents) -->|Embeddings| Chroma
-    end
-```
-
-### Architectural Layers:
-1.  **Orchestration Layer (Java/Spring Boot)**: Responsible for authentication, transaction management, and the asynchronous triggering of AI tasks.
-2.  **Intelligence Layer (Python/Flask)**: A specialized NLP service that encapsulates prompt engineering, vector search, and model interaction.
-3.  **Persistence Layer (Multi-Store)**:
-    *   **MySQL**: Stores relational metadata (risk IDs, user relationships, timestamps).
-    *   **ChromaDB**: An AI-native vector database storing high-dimensional embeddings for RAG.
-    *   **Redis**: An in-memory key-value store used to cache AI responses via deterministic SHA256 hashes.
+### Why Microservices?
+- **Isolation**: If the AI model is slow, it doesn't slow down the user's ability to login to the Java app.
+- **Language Choice**: I used **Python** for the AI service because it has the best libraries for LLMs (Groq, ChromaDB), and **Java** for the backend because of its enterprise reliability (Spring Boot).
 
 ---
 
-## 3. AI Services Deep Dive
+## Part 2: Phase-by-Phase Reconstruction
 
-Each intelligence service is exposed as a stateless REST endpoint within the Flask environment.
+### Phase 1: The Environment & Configuration
+Every project needs a place to store its secrets and dependencies.
 
-### A. Risk Description & Categorization (`/describe`, `/categorise`)
-*   **Purpose**: Transforms vague risk observations into structured, professional entries.
-*   **Input**: `{"text": "string"}` (The raw risk observation).
-*   **Process**: The system selects the appropriate prompt template, injects the user input, and calls the Groq Llama 3.3 model.
-*   **Output**: A JSON object containing `title`, `description`, `impact`, `likelihood`, and `category`.
+#### 1. `requirements.txt`
+*   **Why**: This file lists every Python library I need.
+*   **Key Lines**:
+    - `flask`: The web framework. I chose it because it's lightweight.
+    - `groq`: The client library for our Llama 3 model.
+    - `chromadb`: Our vector database for RAG.
+    - `redis`: For caching responses to save money and time.
 
-### B. Retrieval-Augmented Generation (`/query`)
-*   **Purpose**: Answers domain-specific questions using the internal knowledge base.
-*   **Input**: `{"text": "string"}` (The query).
-*   **Process**:
-    1.  Convert the query into a 384-dimension vector using `all-MiniLM-L6-v2`.
-    2.  Query **ChromaDB** for the top 3 most similar document segments.
-    3.  Inject these segments as "Context" into a specialized reasoning prompt.
-    4.  The LLM generates a response constrained strictly to the provided context.
-*   **Output**: `{"answer": "string", "sources": ["list of files"]}`.
-
-### C. Batch Processing (`/batch-process`)
-*   **Purpose**: High-throughput processing of multiple risks (up to 20 per request).
-*   **Input**: `{"items": ["risk 1", "risk 2", ...]}`.
-*   **Process**: Iterates through items with a mandatory **100ms inter-item delay** to respect Groq rate limits while maximizing concurrency via Flask's threaded server.
-*   **Output**: A collection of structured results, including individual confidence scores and latency metrics.
+#### 2. `.env`
+*   **Why**: I never hardcode API keys. This file stays on my local machine (and is in `.gitignore`) to keep the `GROQ_API_KEY` secret.
 
 ---
 
-## 4. Data Flow Trace
+### Phase 2: The Intelligence Engine (`services/groq_client.py`)
+This is the heart of the system. It talks to the Groq Cloud.
 
-Tracing the lifecycle of a **Risk Creation** event:
-
-1.  **Ingress**: A User POSTs a new risk to the Java Backend via `/api/risks`.
-2.  **Persistence**: The Backend saves the raw risk to MySQL with a `PENDING_AI` status.
-3.  **Asynchronous Trigger**: Using Spring's `@Async` executor, the Backend immediately sends a non-blocking request to the AI Service's `/describe` endpoint.
-4.  **Sanitization**: The AI Service's `sanitiser.py` strips HTML and checks for prompt injection patterns using regex.
-5.  **Cache Check**: The service computes a SHA256 hash of the input. If found in **Redis**, the cached result is returned instantly.
-6.  **Model Inference**: On a cache miss, the service calls **Groq**. Llama 3.3 processes the prompt in <800ms.
-7.  **Egress**: The AI response (JSON) is returned to the Backend, which updates the MySQL record with the enriched description and category.
+*   **`client = Groq(api_key=os.getenv('GROQ_API_KEY'))`**: I initialize the connection here. If the key is missing, the service will fail immediately.
+*   **`def call_groq(...)`**: I built this function to be flexible.
+    - **Prompt Loading**: It reads text files from the `prompts/` folder. This keeps my code clean—I don't have long text strings inside my Python files.
+    - **Retry Logic**: I added a `for attempt in range(max_retries)` loop. AI APIs can sometimes glitch; this ensures we try again 3 times before giving up.
+    - **JSON Cleaning**: LLMs often wrap their answers in "markdown blocks" (like \`\`\`json). I wrote code to strip these out so I can parse the raw JSON data reliably.
 
 ---
 
-## 5. Component Responsibilities
+### Phase 3: The Knowledge Base (`services/chroma_client.py`)
+This is how the AI "reads" my policy documents.
 
-| Component | Responsibility |
-| :--- | :--- |
-| `app.py` | Flask entry point, blueprint registration, and global input sanitization. |
-| `AiServiceClient.java` | Java-side client for AI service communication; manages timeouts and retries. |
-| `groq_client.py` | Encapsulates the Groq API connection; handles prompt template loading and JSON repair. |
-| `chroma_client.py` | Manages the vector store; handles embedding generation and similarity searches. |
-| `job_queue.py` | Thread-safe in-memory manager for asynchronous tasks (e.g., long-form report generation). |
-| `redis_cache.py` | Deterministic caching logic; maps input hashes to previously generated AI results. |
+*   **`model = SentenceTransformer('all-MiniLM-L6-v2')`**: This model turns text into numbers (vectors).
+*   **ChromaDB**: I chose ChromaDB because it's "AI-native." It stores these numbers and lets me ask, "Which document segment is most similar to this user question?"
+*   **`def get_context(query)`**: This takes a user's question, turns it into a vector, and finds the top 3 relevant paragraphs from our documents.
 
 ---
 
-## 6. How to Run & Verify
+### Phase 4: Performance Layer (`services/ai_cache.py`)
+AI calls are expensive and slow (~1 second). I want them to be free and fast.
 
-### Environment Requirements:
-- Python 3.11+
-- Java 17+
-- Redis Server (Port 6379)
-- Groq Cloud API Key (`GROQ_API_KEY`)
+*   **SHA256 Hashing**: I take the user's input and turn it into a unique 64-character ID.
+*   **Redis**: I store the AI's answer in Redis using that ID. If the next user asks the exact same thing, I find the ID in Redis and return the answer in **5 milliseconds** instead of 1000ms.
 
-### Setup Commands:
+---
+
+### Phase 5: The Web Interface (`app.py` & Blueprints)
+I use **Flask Blueprints** to organize my routes. Instead of one giant file, every feature has its own file in the `routes/` folder.
+
+*   **`limiter = Limiter(...)`**: I added this to prevent "Brute Force" or "Denial of Service" attacks. It restricts users to 30 requests per minute.
+*   **`@app.before_request`**: This is my security guard. Every single request passes through here first to be **sanitized** (stripping out malicious code or "Prompt Injection" attempts).
+
+---
+
+### Phase 6: Scaling for Production
+
+#### 1. Batch Processing (`routes/batch_process.py`)
+*   **The 100ms Delay**: I added `time.sleep(0.1)` between items. This is a "politely aggressive" way to process many items without hitting the Groq API rate limits.
+
+#### 2. Async Job Queue (`services/job_queue.py`)
+*   **Why**: Some reports take 30 seconds to generate. I don't want the user's browser to "hang."
+*   **How**: When a user starts a report, I give them a `job_id` and run the AI in a **background thread**. The user's browser then "polls" (checks back) every few seconds to see if it's done.
+
+---
+
+### Phase 7: The Java Connection (`AiServiceClient.java`)
+This is how the Java backend talks to the Python AI.
+
+*   **`RestTemplate`**: The standard Java way to make HTTP calls.
+*   **Timeouts**: I set a `setConnectTimeout(5000)` and `setReadTimeout(10000)`. This ensures that even if the AI service crashes, the Java backend stays responsive.
+
+---
+
+## Part 3: How to Rebuild it (Step-by-Step)
+
+### 1. Set up the Python Service
 ```powershell
-# 1. Initialize Python Environment
-cd ai-service
+# Create the folder and virtual environment
+mkdir ai-service; cd ai-service
 python -m venv venv
 .\venv\Scripts\activate
-pip install -r requirements.txt
 
-# 2. Start the AI Microservice
-python app.py
+# Install the "Brain"
+pip install flask groq chromadb redis sentence-transformers bleach flask-talisman flask-limiter
 ```
 
-### Verification CLI Commands:
-I use these commands to verify the health and functional correctness of the system:
+### 2. Configure the Secrets
+Create a `.env` file and add your key:
+`GROQ_API_KEY=your_key_here`
 
-```powershell
-# Verify System Health
-Invoke-RestMethod -Uri http://localhost:5000/health
+### 3. Seed the Knowledge Base
+I've provided a script to ingest your initial documents so the RAG system has something to read.
 
-# Verify Batch Processing (Phase 3 Milestone)
-Invoke-RestMethod -Uri http://localhost:5000/batch-process -Method Post -ContentType "application/json" -Body '{"items": ["SQLi in login", "Vendor outage"]}'
+### 4. Verify the Build
+I use these specific commands to ensure every layer is working:
 
-# Verify Asynchronous Report Job (Phase 3 Milestone)
-$job = Invoke-RestMethod -Uri http://localhost:5000/generate-report/async -Method Post -ContentType "application/json" -Body '{"text": "Generate a summary..."}'
-Invoke-RestMethod -Uri "http://localhost:5000/generate-report/status/$($job.job_id)"
-```
+1.  **Check Connectivity**: `Invoke-RestMethod -Uri http://localhost:5000/health` (Should return "healthy").
+2.  **Test Reasoning**: `Invoke-RestMethod -Uri http://localhost:5000/describe -Method Post -Body '{"text": "Data leak"}'` (Should return a structured JSON risk).
+3.  **Test Knowledge**: `Invoke-RestMethod -Uri http://localhost:5000/query -Method Post -Body '{"text": "What is our password policy?"}'` (Should return an answer based on your documents).
 
 ---
 
-## 7. Glossary
+## Glossary of Terms (For the "Noob" Guide)
 
-*   **LLM (Large Language Model)**: A neural network trained on vast datasets to understand and generate human-like text. We use Llama 3.3.
-*   **RAG (Retrieval-Augmented Generation)**: A technique that provides the LLM with specific, external context (like a policy doc) to improve accuracy and reduce hallucinations.
-*   **Embeddings**: A numerical representation of text (a vector) that captures semantic meaning. Similar meanings have vectors that are "closer" in multi-dimensional space.
-*   **Vector Database (ChromaDB)**: A specialized database designed to store and query embeddings using "Nearest Neighbor" algorithms.
-*   **SSE (Server-Sent Events)**: A standard for streaming data from the server to the client in real-time over a single HTTP connection.
-*   **Deterministic Caching**: A method where the same input always generates the same key (hash), ensuring we never waste tokens on identical requests.
-*   **Prompt Injection**: A security vulnerability where a user attempts to "trick" the AI into ignoring its instructions by providing malicious input.
+*   **Microservice**: A small, independent piece of software that does one job well.
+*   **LLM (Large Language Model)**: The "Brain" (Llama 3). It understands language.
+*   **Endpoint**: A specific URL (like `/describe`) that a program can "call" to get a result.
+*   **Vector**: A list of numbers that represent the "meaning" of a sentence.
+*   **Blueprint**: A way to organize a Flask app into smaller, manageable sections.
+*   **Sanitization**: Cleaning up user input so it can't "hack" or "trick" the system.
+*   **SSE (Streaming)**: Sending data piece-by-piece as it's being thought of, like a typewriter.
