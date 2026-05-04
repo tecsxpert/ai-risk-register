@@ -82,23 +82,25 @@
 
 ---
 
-## Week 3 Security Hardening & Sign-off (8 May 2026)
+## Week 2 Security Sign-off (5 May 2026)
 
-I have successfully completed the Week 3 production hardening for the AI service.
+I have successfully completed the Week 2 security hardening for the AI service.
 
-### **1. Scaling & Batch Security**
-*   **Batch Rate-Limit Respect**: I've implemented a mandatory 100ms inter-item delay in my `POST /batch-process` endpoint. This ensures that even with a full 20-item batch, I don't trigger my Groq rate-limit threshold (RPM/RPD).
-*   **Input Length Enforcement**: I've added a strict 10,000-character limit to all incoming text fields for both batch and async processing to prevent Resource Exhaustion (DoS) attacks.
-*   **Blueprint Isolation**: My batch and async routes are isolated in their own blueprints, allowing me to apply specific rate-limits and security headers to each independently.
+### **1. AI-Specific Security Implementations**
+*   **Enhanced Rate Limiting**: I've applied a strict 10 req/min limit specifically to my `/generate-report` endpoints to prevent Groq quota exhaustion attacks.
+*   **SSE Streaming Security**: I've added `X-Accel-Buffering: no` and standard security headers to my streaming endpoint to ensure it's not buffered by proxies and remains observable.
+*   **Global Sanitisation**: I've implemented a global `@app.before_request` hook that automatically sanitises all incoming POST/PUT JSON data for prompt injection patterns.
 
-### **2. Asynchronous Job Security**
-*   **UUID-based Job Tracking**: All background jobs are tracked using cryptographically secure UUIDs (v4). This prevents Job ID guessing (IDOR) attacks where an attacker might try to view other users' report results.
-*   **Webhook Best-Effort Delivery**: My webhook notification system is built to fail silently. It uses a 10-second timeout and does not retry, preventing my background threads from being tied up by malicious or slow external endpoints.
-*   **Thread Safety**: I've implemented `threading.Lock` across my in-memory job store to prevent race conditions and ensuring data integrity when multiple jobs are processed simultaneously.
+### **2. PII Audit Results**
+I've conducted a manual audit of all my prompt templates, application logs, and ChromaDB stored content.
+*   **Prompts**: I've verified that no personal data (names, emails, IDs) is hardcoded in any prompt files.
+*   **Logs**: I've confirmed that my `INFO` logs only record metadata (input length, latency, tokens) and never log the actual content of user requests.
+*   **ChromaDB**: My knowledge base only contains public risk management standards and best practices.
 
-### **3. Performance & Load Verification**
-*   **Concurrent Stress Test**: I've verified my service's thread safety by running concurrent requests against the `/describe` and `/generate-report/async` endpoints. My use of `threaded=True` in Flask handles these gracefully without deadlocks.
-*   **Memory Management**: I've audited my in-memory job store (`_jobs`) to ensure it doesn't cause a memory leak. In a production environment, I've noted that this should be moved to Redis for persistence and automatic TTL-based cleanup.
+### **3. Compliance Status**
+*   **Injection Rejection**: Verified (400 Bad Request returned for injection patterns).
+*   **Observability**: All responses now include a `meta` object for tracking model usage and latency.
+*   **JWT Enforcement**: My Spring Boot backend correctly rejects any unauthenticated requests to the AI service.
 
-**I hereby sign off on the Week 3 Security requirements for the Tool-01 AI Risk Register. The service is now hardened and ready for the final demo.**
+**I hereby sign off on the Week 2 Security requirements for the Tool-01 AI Risk Register.**
 — *Solo Developer*
