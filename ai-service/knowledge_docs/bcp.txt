@@ -1,0 +1,1 @@
+Business Continuity Planning (BCP) ensures that essential business functions can continue during and after a disaster. This includes Disaster Recovery (DR) for IT systems, as well as operational procedures for alternative work locations. A good BCP is tested regularly through simulations and tabletop exercises.

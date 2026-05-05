@@ -5,6 +5,7 @@ import logging
 from groq import Groq
 from dotenv import load_dotenv
 from services.metrics import record_response_time
+from services.config import MODEL_NAME, GROQ_TIMEOUT
 
 # I'm loading my environment variables first so I can safely read my API key.
 load_dotenv()
@@ -12,7 +13,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 # I'm initializing my Groq client carefully. I never put my API key string directly here!
-client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+client = Groq(api_key=os.getenv('GROQ_API_KEY'), timeout=GROQ_TIMEOUT)
 
 # I'm pointing to my prompts folder which sits next to the services folder.
 PROMPT_DIR = os.path.join(os.path.dirname(__file__), '..', 'prompts')
@@ -20,8 +21,12 @@ PROMPT_DIR = os.path.join(os.path.dirname(__file__), '..', 'prompts')
 def load_prompt(key: str) -> str:
     # I use this to dynamically read my prompt text files.
     path = os.path.join(PROMPT_DIR, f'{key}_prompt.txt')
-    with open(path) as f:
-        return f.read()
+    try:
+        with open(path, 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        logger.error(f"I couldn't find my prompt file at: {path}")
+        raise
 
 def call_groq(prompt_key_or_messages, user_input=None, temperature=0.3, max_tokens=1000, max_retries=3) -> any:
     # I'll determine if I'm being called with a prompt_key or a list of messages.
@@ -42,7 +47,7 @@ def call_groq(prompt_key_or_messages, user_input=None, temperature=0.3, max_toke
             start_ms = time.time() * 1000
             # I must use this exact model! Any typo here will cause a silent error.
             resp = client.chat.completions.create(
-                model='llama-3.3-70b-versatile',
+                model=MODEL_NAME,
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens
@@ -92,7 +97,7 @@ def stream_groq(messages, temperature=0.4, max_tokens=1000):
     """
     try:
         stream = client.chat.completions.create(
-            model='llama-3.3-70b-versatile',
+            model=MODEL_NAME,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,

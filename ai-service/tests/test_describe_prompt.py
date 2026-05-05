@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 # Add parent dir to path for imports
 BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
+# I'm adding the ai-service root to the path so I can run this script directly.
 sys.path.insert(0, BASE_DIR)
 
 from services.groq_client import call_groq

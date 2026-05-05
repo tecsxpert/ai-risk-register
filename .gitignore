@@ -47,3 +47,4 @@ logs/
 .pytest_cache/
 htmlcov/
 .coverage
+scratch/

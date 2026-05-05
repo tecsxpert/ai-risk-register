@@ -62,22 +62,29 @@ def create_app():
             if not data:
                 return
             
-            def check_for_injection(obj):
+            def sanitise_recursive(obj):
                 if isinstance(obj, str):
                     cleaned, is_injection = sanitise_text(obj)
                     if is_injection:
-                        return True
+                        return True, cleaned
+                    return False, cleaned
                 elif isinstance(obj, list):
-                    for item in obj:
-                        if check_for_injection(item):
-                            return True
+                    for i in range(len(obj)):
+                        is_inj, cleaned = sanitise_recursive(obj[i])
+                        if is_inj:
+                            return True, None
+                        obj[i] = cleaned
                 elif isinstance(obj, dict):
-                    for val in obj.values():
-                        if check_for_injection(val):
-                            return True
-                return False
+                    for key, val in obj.items():
+                        is_inj, cleaned = sanitise_recursive(val)
+                        if is_inj:
+                            return True, None
+                        obj[key] = cleaned
+                return False, obj
 
-            if check_for_injection(data):
+            is_injection, _ = sanitise_recursive(data)
+            
+            if is_injection:
                 return jsonify({
                     "error": "I detected invalid input. I've blocked this request.",
                     "code": "INJECTION_DETECTED"

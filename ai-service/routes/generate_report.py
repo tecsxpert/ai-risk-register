@@ -5,7 +5,7 @@ import time
 import threading
 from flask import Blueprint, request, jsonify, Response, stream_with_context
 from datetime import datetime, timezone
-from services.groq_client import call_groq, stream_groq
+from services.groq_client import call_groq, stream_groq, load_prompt
 from services.ai_cache import get_cached, set_cached
 from services.response_builder import build_meta, estimate_tokens
 from services.job_queue import create_job, get_job, update_job_status, notify_webhook, JobStatus
@@ -28,12 +28,11 @@ FALLBACK_REPORT = {
 
 
 def _load_prompt_template() -> str:
-    # I'm loading my report prompt from the prompts directory.
+    # I'm now using my central load_prompt service to avoid path issues!
     try:
-        with open('prompts/generate_report_prompt.txt', 'r') as f:
-            return f.read()
-    except FileNotFoundError:
-        logger.error("I couldn't find prompts/generate_report_prompt.txt.")
+        return load_prompt('generate_report')
+    except Exception:
+        logger.error("I failed to load my report prompt template.")
         return ""
 
 
@@ -73,6 +72,12 @@ def generate_report():
         clean = raw_response.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
         parsed = json.loads(clean)
         
+        # I'm validating that all required keys are present in the AI response.
+        required_keys = {"title", "executive_summary", "overview", "top_items", "recommendations"}
+        if required_keys - set(parsed.keys()):
+            logger.warning(f"My sync report generation is missing required keys. Returning fallback.")
+            return jsonify({**FALLBACK_REPORT, "generated_at": ts, "is_fallback": True}), 200
+
         response_body = {
             **parsed,
             "generated_at": ts,

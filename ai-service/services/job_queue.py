@@ -67,6 +67,39 @@ def update_job_status(job_id: str, status: JobStatus, result: dict = None, error
     logger.info(f"I've updated job {job_id} to status: {status}")
 
 
+import urllib.parse
+import ipaddress
+import socket
+
+def is_safe_url(url: str) -> bool:
+    """
+    I perform basic SSRF validation on my webhook URLs.
+    I ensure they use HTTPS and don't point to private or loopback IP ranges.
+    """
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme != "https":
+            logger.warning(f"I'm blocking a non-HTTPS webhook URL: {url}")
+            return False
+        
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+            
+        # Resolve hostname to IP to check for private ranges
+        ip = socket.gethostbyname(hostname)
+        ip_obj = ipaddress.ip_address(ip)
+        
+        if ip_obj.is_private or ip_obj.is_loopback:
+            logger.warning(f"I'm blocking a webhook URL pointing to a private/loopback IP: {url} ({ip})")
+            return False
+            
+        return True
+    except Exception as e:
+        logger.error(f"I encountered an error during webhook URL validation: {e}")
+        return False
+
+
 def notify_webhook(webhook_url: str, job_id: str, result: dict) -> None:
     """
     I POST the completed job result to the provided webhook URL.
@@ -74,6 +107,12 @@ def notify_webhook(webhook_url: str, job_id: str, result: dict) -> None:
     """
     if not webhook_url:
         return
+    
+    # I'm validating the URL to prevent SSRF attacks.
+    if not is_safe_url(webhook_url):
+        logger.error(f"I'm skipping the webhook for job {job_id} because the URL failed my safety checks.")
+        return
+
     try:
         payload = {"job_id": job_id, "status": JobStatus.COMPLETED, "result": result}
         response = requests.post(webhook_url, json=payload, timeout=10)

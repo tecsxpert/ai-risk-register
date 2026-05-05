@@ -46,13 +46,28 @@ def query_rag():
         
         # I'm formatting my retrieved chunks into a single context string.
         context_chunks = results.get('documents', [[]])[0]
-        context = "\n---\n".join(context_chunks) if context_chunks else "No relevant context found."
+        
+        # I'm checking if the best match is actually relevant (Distance threshold check)
+        distances = results.get('distances', [[]])[0]
+        if not context_chunks or (distances and distances[0] > 0.6):
+            logger.info(f"I found no relevant documents (Best distance: {distances[0] if distances else 'N/A'}).")
+            response_time_ms = (time.time() - start_time) * 1000
+            ts = datetime.now(timezone.utc).isoformat()
+            return jsonify({
+                "answer": "I cannot find any relevant information in my security knowledge base to answer that specific question.",
+                "sources": [],
+                "is_rag": False,
+                "generated_at": ts,
+                "meta": build_meta(response_time_ms, False, 1.0, 0)
+            }), 200
+
+        context = "\n---\n".join(context_chunks)
         
         # I'm starting my generation phase.
         formatted_input = f"Context:\n{context}\n\nQuestion: {question}"
         
-        # I'm calling Groq with the context. Note that my 'query' key loads 'prompts/query_prompt.txt'.
-        result = call_groq('query', formatted_input, temperature=0.2)
+        # I'm calling Groq with a very low temperature (0.1) for maximum factual grounding.
+        result = call_groq('query', formatted_input, temperature=0.1)
         response_time_ms = (time.time() - start_time) * 1000
         ts = datetime.now(timezone.utc).isoformat()
         

@@ -1,0 +1,1 @@
+Phishing is a social engineering attack where attackers deceive users into revealing sensitive information like passwords or credit card numbers. It often involves fraudulent emails that appear to be from trusted sources. Protection measures include Multi-Factor Authentication (MFA), email filtering, and continuous security awareness training.

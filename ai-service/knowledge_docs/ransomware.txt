@@ -1,0 +1,1 @@
+Ransomware is a type of malware that encrypts a victim's files, with the attacker demanding a ransom to restore access. Modern ransomware often includes data exfiltration (double extortion). Prevention involves robust backup strategies (offline or immutable backups), endpoint protection, and employee training to recognize phishing attempts.

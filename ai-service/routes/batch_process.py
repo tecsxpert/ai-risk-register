@@ -19,7 +19,7 @@ INTER_ITEM_DELAY_SECONDS = 0.1  # 100ms per spec
 def _fallback_item_result(item_text: str, index: int) -> dict:
     return {
         "index": index,
-        "input": item_text[:100],
+        "input": item_text[:200],
         "description": "AI description unavailable — manual review required.",
         "category": "OPERATIONAL",
         "confidence": 0.0,

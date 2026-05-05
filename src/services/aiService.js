@@ -1,6 +1,6 @@
 import { mockAiAnalysis, mockAiAnswer } from "./mockData";
 
-const USE_MOCK = true; // Change to false when backend is ready
+const USE_MOCK = false; // Real AI service is ready
 
 // Ask a general AI question (not tied to a specific risk)
 export const askGeneralQuestion = async (question, context = "") => {
@@ -34,7 +34,7 @@ export const askGeneralQuestion = async (question, context = "") => {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, context }),
+      body: JSON.stringify({ text: question, context }),
     }
   );
   if (!response.ok) throw new Error("AI service error");

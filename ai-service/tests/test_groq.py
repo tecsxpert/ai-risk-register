@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env at ai-service root
 BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
+# I'm adding the ai-service root to the path so I can run this script directly.
 sys.path.insert(0, BASE_DIR)
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
