@@ -13,6 +13,7 @@ from routes.categorise import categorise_bp
 from routes.query import query_bp
 from routes.health import health_bp
 from routes.analyse_document import analyse_document_bp
+from routes.batch_process import batch_process_bp
 from services.chroma_client import get_model
 from services.sanitiser import sanitise_text
 from services.ingest_documents import ingest_document
@@ -44,6 +45,7 @@ def create_app():
     app.register_blueprint(query_bp)
     app.register_blueprint(health_bp)
     app.register_blueprint(analyse_document_bp)
+    app.register_blueprint(batch_process_bp)
 
     # I've exempted my health endpoint from rate limiting so I can always monitor it.
     limiter.exempt(health_bp)
