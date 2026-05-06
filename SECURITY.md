@@ -104,3 +104,200 @@ I've conducted a manual audit of all my prompt templates, application logs, and 
 
 **I hereby sign off on the Week 2 Security requirements for the Tool-01 AI Risk Register.**
 — *Solo Developer*
+
+---
+
+# Independent Security Reviewer Findings
+
+## Backend Configuration Review
+- Reviewed `application.yml` configuration.
+- AI service URL is externalized using environment-variable syntax `${AI_SERVICE_URL}`.
+- No hardcoded API keys or passwords observed in reviewed backend configuration.
+
+## Repository Security Review
+- `.env` exclusion verification pending in `.gitignore`.
+- No exposed secrets observed in current repository structure review.
+
+## Authentication Review
+- JWT-related classes and role-based access control implementation require further verification in backend modules.
+- Authentication endpoints not fully reviewed at current stage.
+
+## Frontend Security Review
+- Frontend token storage mechanism under review.
+- XSS exposure assessment pending after frontend runtime testing.
+
+## AI Service Review
+- AI microservice structure implemented correctly.
+- Prompt injection mitigation and sanitization logic documented and partially verified.
+- Additional runtime testing recommended before Demo Day.
+
+---
+
+# Residual Risks
+
+The following risks still require ongoing monitoring and verification:
+
+- AI hallucination risks cannot be fully eliminated.
+- Prompt injection protection effectiveness depends on maintained regex/filter rules.
+- JWT tokens stored in browser storage may remain vulnerable if frontend sanitization fails.
+- Groq API quota exhaustion remains possible under distributed abuse conditions.
+- Full penetration testing not yet completed on integrated deployment environment.
+
+---
+
+### Week 3 Security Findings
+
+### Frontend XSS Testing
+- Tested Risk Title field using payload:
+  <script>alert('XSS')</script>
+- No JavaScript execution observed.
+- No alert popups triggered during testing.
+- Frontend appears to escape or safely render injected HTML.
+
+---
+
+### Search Input Security Testing
+- Tested search functionality using payload:
+  <img src=x onerror=alert('XSS')>
+- No reflected XSS execution observed.
+- Search input handled malicious payload safely without UI disruption.
+
+---
+
+### Delete Action Security Review
+- Delete operation requires user confirmation before execution.
+- Confirmation dialog successfully displayed.
+- Risk item was not deleted after confirmation.
+- Possible causes:
+  - Backend delete API not connected
+  - Authorization restriction
+  - Incomplete backend integration
+- Additional backend verification required.
+
+---
+
+### Input Validation Testing
+- Tested Risk Score field using invalid value: 9999
+- Frontend validation correctly rejected the input.
+- Validation message displayed:
+  "Score must be between 1 to 100"
+- Numeric boundary validation appears properly implemented.
+
+---
+
+### Required Field Validation Testing
+- Tested Create Risk form with all fields left empty.
+- Form submission blocked successfully.
+- Validation message displayed requiring completion of mandatory fields.
+- No crashes or unexpected behavior observed.
+
+---
+
+### SQL Injection Payload Testing
+- Tested search input using payload:
+  ' OR 1=1 --
+- Payload treated as normal text input.
+- No abnormal data exposure or UI disruption observed.
+- No evidence of basic SQL injection vulnerability during frontend testing.
+
+---
+
+### Sensitive Data Exposure Review
+- Reviewed browser Network tab during frontend execution.
+- No exposed API keys, JWT secrets, database credentials, or sensitive configuration values observed.
+- Frontend requests appeared limited to expected application assets and API activity.
+
+---
+
+### Authentication Token Storage Review
+- Authentication token observed in browser localStorage.
+- Minimal user information also stored in frontend storage.
+- No plaintext passwords observed.
+- Current implementation is functional but introduces potential XSS-related token exposure risk if frontend sanitization fails in future updates.
+- Recommendation: Consider HttpOnly secure cookies for stronger session protection.
+
+---
+
+### Route Protection Testing
+- Tested direct access to protected `/risks` route after logout.
+- Application correctly redirected unauthorized user to login screen.
+- Protected route access control appears properly implemented.
+
+---
+
+### Console & Information Leakage Review
+- Reviewed browser console during frontend navigation and interaction testing.
+- No sensitive debug messages, stack traces, SQL errors, or internal backend paths observed.
+- Frontend console output appeared clean during normal application usage.
+
+---
+
+### Session Handling & Logout Review
+- Verified logout functionality clears authentication token from browser storage.
+- LocalStorage session data removed successfully after logout.
+- Session termination behavior appears correctly implemented on frontend.
+
+---
+
+### AI Service Runtime Review
+- AI service startup testing performed using local development environment.
+- Flask service dependencies partially verified successfully.
+- AI service correctly requires `GROQ_API_KEY` through environment-variable configuration.
+- No hardcoded API keys observed in reviewed Groq client implementation.
+
+---
+
+# Week 3 Independent Security Validation Summary
+
+Independent frontend and runtime security validation was performed on the AI Risk Register application.
+
+## Completed Security Validation
+- XSS payload testing
+- Search input testing
+- SQL injection payload testing
+- Required field validation testing
+- Numeric boundary validation testing
+- Route protection verification
+- Token storage review
+- Sensitive data exposure review
+- Browser console leakage review
+- Session logout handling verification
+- AI service runtime review
+
+## Key Findings
+- No successful XSS execution observed during testing.
+- No sensitive credentials exposed in frontend runtime inspection.
+- Authentication route protection functioning correctly.
+- Logout clears client-side authentication state successfully.
+- localStorage token storage introduces potential future XSS exposure risk.
+- AI service correctly uses environment-variable-based API key handling.
+
+## Reviewer Recommendations
+- Consider migration from localStorage tokens to HttpOnly secure cookies.
+- Perform full backend API penetration testing before production deployment.
+- Perform automated OWASP ZAP active scan before Demo Day.
+- Continue validating prompt injection protections during future AI updates.
+
+Security validation performed as part of Week 3 Security Reviewer responsibilities.
+
+---
+
+# Week 4 Final Security Reviewer Sign-Off
+
+## Final Review Status
+- Frontend security validation completed successfully.
+- Authentication and session handling verified.
+- Input validation functioning correctly during testing.
+- No major frontend vulnerabilities identified during reviewer testing.
+- No exposed secrets observed during runtime inspection.
+- AI service configuration reviewed for secure environment-variable usage.
+
+## Residual Risks
+- localStorage token storage may remain vulnerable if future XSS vulnerabilities are introduced.
+- Full backend penetration testing still recommended before production deployment.
+- AI hallucination and prompt-manipulation risks cannot be completely eliminated.
+
+## Reviewer Conclusion
+The AI Risk Register application demonstrates a strong foundational frontend security posture during reviewer testing. Core protections including route authorization, validation handling, session cleanup, and frontend sanitization behaved correctly during validation activities.
+
+Independent security review completed as part of Week 4 final verification.
