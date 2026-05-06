@@ -3,8 +3,10 @@
 import time
 from datetime import datetime, timezone
 
+from services.config import MODEL_NAME
+
 # This is the model I'm currently using.
-AI_MODEL_NAME = "llama-3.3-70b-versatile"
+AI_MODEL_NAME = MODEL_NAME
 
 
 def build_meta(

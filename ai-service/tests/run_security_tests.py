@@ -25,13 +25,8 @@ def run_tests():
     for ep in ENDPOINTS:
         print(f"Testing endpoint: {ep}")
         for tc in TEST_CASES:
-            # Special case for generate-report which takes 'items' instead of 'text'
+            # Fix: /generate-report expects 'text' not 'items'
             payload = tc["payload"]
-            if ep == "/generate-report":
-                if tc["name"] == "Empty Input":
-                    payload = {"items": []}
-                else:
-                    payload = {"items": [tc["payload"]["text"]]}
             
             try:
                 resp = requests.post(f"{BASE_URL}{ep}", json=payload)

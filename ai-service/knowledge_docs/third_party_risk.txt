@@ -1,0 +1,1 @@
+Third-party risk management (TPRM) involves assessing and monitoring the risks posed by external vendors and service providers. This is critical because a breach at a vendor can expose your organization's data. TPRM includes security assessments, contract clauses for security standards, and ongoing performance monitoring.

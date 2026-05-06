@@ -33,8 +33,8 @@ public class AiServiceClient {
     // I did this to prevent my Java service from hanging if my Flask service is slow.
     public AiServiceClient(RestTemplateBuilder builder) {
         this.restTemplate = builder
-                .connectTimeout(Duration.ofSeconds(10))
-                .readTimeout(Duration.ofSeconds(10))
+                .setConnectTimeout(Duration.ofSeconds(10))
+                .setReadTimeout(Duration.ofSeconds(10))
                 .build();
     }
 
@@ -77,7 +77,7 @@ public class AiServiceClient {
      * I call my POST /describe endpoint to generate a professional risk description.
      */
     public Map<String, Object> describe(String text) {
-        if (text == null || text.isBlank()) {
+        if (text == null || text.trim().isEmpty()) {
             logger.warn("I received blank text for describe(). I'm returning null.");
             return null;
         }
@@ -90,7 +90,7 @@ public class AiServiceClient {
      * I call my POST /categorise endpoint to classify a risk into a category.
      */
     public Map<String, Object> categorise(String text) {
-        if (text == null || text.isBlank()) {
+        if (text == null || text.trim().isEmpty()) {
             logger.warn("I received blank text for categorise(). I'm returning null.");
             return null;
         }
@@ -103,7 +103,7 @@ public class AiServiceClient {
      * I call my POST /recommend endpoint to get 3 actionable mitigation recommendations.
      */
     public Map<String, Object> recommend(String text) {
-        if (text == null || text.isBlank()) {
+        if (text == null || text.trim().isEmpty()) {
             logger.warn("I received blank text for recommend(). I'm returning null.");
             return null;
         }
@@ -116,7 +116,7 @@ public class AiServiceClient {
      * I call my POST /query endpoint to perform a RAG-based question and answer lookup.
      */
     public Map<String, Object> query(String text) {
-        if (text == null || text.isBlank()) {
+        if (text == null || text.trim().isEmpty()) {
             logger.warn("I received blank text for query(). I'm returning null.");
             return null;
         }
@@ -129,7 +129,7 @@ public class AiServiceClient {
      * I call my POST /generate-report endpoint to produce an AI-generated report.
      */
     public Map<String, Object> generateReport(String text) {
-        if (text == null || text.isBlank()) {
+        if (text == null || text.trim().isEmpty()) {
             logger.warn("I received blank text for generateReport(). I'm returning null.");
             return null;
         }
@@ -142,7 +142,7 @@ public class AiServiceClient {
      * I call my POST /analyse-document endpoint to identify key insights from a document.
      */
     public Map<String, Object> analyseDocument(String text) {
-        if (text == null || text.isBlank()) {
+        if (text == null || text.trim().isEmpty()) {
             logger.warn("I received blank text for analyseDocument(). I'm returning null.");
             return null;
         }

@@ -4,7 +4,7 @@ import logging
 import time
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timezone
-from services.groq_client import call_groq
+from services.groq_client import call_groq, load_prompt
 from services.ai_cache import get_cached, set_cached
 from services.response_builder import build_meta, estimate_tokens
 
@@ -13,12 +13,11 @@ analyse_document_bp = Blueprint('analyse_document', __name__)
 
 
 def _load_prompt_template() -> str:
-    # I'm loading my document analysis prompt from my prompts directory.
+    # I'm now using my central load_prompt service to avoid path issues!
     try:
-        with open('prompts/analyse_document_prompt.txt', 'r') as f:
-            return f.read()
-    except FileNotFoundError:
-        logger.error("I couldn't find prompts/analyse_document_prompt.txt.")
+        return load_prompt('analyse_document')
+    except Exception:
+        logger.error("I failed to load my document analysis prompt template.")
         return ""
 
 

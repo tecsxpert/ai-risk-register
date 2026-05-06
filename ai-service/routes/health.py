@@ -5,12 +5,13 @@ import logging
 from flask import Blueprint, jsonify
 from services.chroma_client import get_collection_count
 from services.metrics import get_avg_response_time_ms, get_cache_stats, get_uptime_seconds
+from services.config import MODEL_NAME
 
 logger = logging.getLogger(__name__)
 health_bp = Blueprint('health', __name__)
 
 # I've hardcoded the AI model name here — it must match my call_groq() model parameter exactly.
-AI_MODEL = "llama-3.3-70b-versatile"
+AI_MODEL = MODEL_NAME
 
 
 @health_bp.route('/health', methods=['GET'])

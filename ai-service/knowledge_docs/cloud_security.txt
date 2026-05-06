@@ -1,0 +1,1 @@
+Cloud security risks often revolve around misconfigurations and the shared responsibility model. While providers like AWS or Azure secure the underlying infrastructure, customers are responsible for securing their data, applications, and network configurations. Common risks include unsecured S3 buckets, weak identity management, and lack of encryption.

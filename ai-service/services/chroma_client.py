@@ -6,8 +6,8 @@ from sentence_transformers import SentenceTransformer
 # Disable ChromaDB telemetry warnings
 os.environ['ANONYMIZED_TELEMETRY'] = 'False'
 
-# I am defining the persistent path for ChromaDB storage
-CHROMA_PATH = os.getenv('CHROMA_PATH', './chroma_data')
+# I am defining the absolute persistent path for ChromaDB storage
+CHROMA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'chroma_data')
 
 # I am using the global Singleton Pattern here so I only load these ONCE!
 _model = None

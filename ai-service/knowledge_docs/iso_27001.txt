@@ -1,0 +1,1 @@
+ISO 27001 is the international standard for information security management systems (ISMS). It provides a framework for managing security risks through a structured approach to confidentiality, integrity, and availability. Key controls include access management, physical security, and incident response planning. Compliance involves regular internal audits and management reviews.

@@ -27,18 +27,22 @@ public class RiskService {
     @Transactional
     public RiskItem createRiskItem(RiskItem item) {
         RiskItem savedItem = riskItemRepository.save(item);
-        
-        // I am firing the async AI call immediately after saving so I don't delay the HTTP response.
+
+        // I am firing the async AI call immediately after saving so I don't delay the
+        // HTTP response.
         String textForAi = savedItem.getTitle() + ". " + savedItem.getDescription();
         attachAiDescriptionAsync(savedItem.getId(), textForAi);
-        
-        logger.info("I've created the risk item with id: {}. I've also fired the async AI description call.", savedItem.getId());
+
+        logger.info("I've created the risk item with id: {}. I've also fired the async AI description call.",
+                savedItem.getId());
         return savedItem;
     }
 
     /**
-     * I use this method to asynchronously call my AI service to generate a description for a new risk record.
-     * I then update the entity's aiDescription field in the database after the AI responds.
+     * I use this method to asynchronously call my AI service to generate a
+     * description for a new risk record.
+     * I then update the entity's aiDescription field in the database after the AI
+     * responds.
      */
     @Async
     public void attachAiDescriptionAsync(Long riskItemId, String riskText) {
@@ -47,29 +51,35 @@ public class RiskService {
             Map<String, Object> aiResponse = aiServiceClient.describe(riskText);
 
             if (aiResponse == null) {
-                logger.warn("My AI describe call returned null for riskItemId: {}. I'm skipping the update.", riskItemId);
+                logger.warn("My AI describe call returned null for riskItemId: {}. I'm skipping the update.",
+                        riskItemId);
                 return;
             }
 
             String description = (String) aiResponse.get("description");
-            if (description == null || description.isBlank()) {
-                logger.warn("My AI describe call returned an empty description for riskItemId: {}. I'm skipping the update.", riskItemId);
+            if (description == null || description.trim().isEmpty()) {
+                logger.warn(
+                        "My AI describe call returned an empty description for riskItemId: {}. I'm skipping the update.",
+                        riskItemId);
                 return;
             }
 
             // I'm reloading the entity here to avoid overwriting any concurrent changes.
-            riskItemRepository.findById(riskItemId).ifPresentOrElse(
-                item -> {
-                    item.setAiDescription(description);
-                    riskItemRepository.save(item);
-                    logger.info("I've successfully attached the AI description to riskItemId: {}. Length: {} chars.", riskItemId, description.length());
-                },
-                () -> logger.warn("I couldn't find riskItemId: {} when trying to attach the AI description.", riskItemId)
-            );
+            java.util.Optional<RiskItem> optionalItem = riskItemRepository.findById(riskItemId);
+            if (optionalItem.isPresent()) {
+                RiskItem item = optionalItem.get();
+                item.setAiDescription(description);
+                riskItemRepository.save(item);
+                logger.info(
+                        "I've successfully attached the AI description to riskItemId: {}. Length: {} chars.",
+                        riskItemId, description.length());
+            } else {
+                logger.warn("I couldn't find riskItemId: {} when trying to attach the AI description.",
+                        riskItemId);
+            }
 
         } catch (Exception e) {
             logger.error("My async AI description call failed for riskItemId: {}: {}", riskItemId, e.getMessage());
         }
     }
 }
-

@@ -114,7 +114,9 @@ def test_generate_report_success(client):
 # 8. I'm testing that my /analyse-document endpoint extracts my findings correctly.
 def test_analyse_document_success(client):
     mock_findings = {
-        "findings": [{"insight": "Insight 1", "risk_level": "HIGH", "category": "SECURITY", "recommendation": "Fix it"}]
+        "document_summary": "Test summary.",
+        "risks": [{"title": "R1", "description": "D1", "category": "SECURITY", "severity": "HIGH", "mitigation_suggestion": "Fix it"}],
+        "total_risks_found": 1
     }
     with patch("routes.analyse_document.call_groq") as mock_call:
         mock_call.return_value = json.dumps(mock_findings)
@@ -122,7 +124,8 @@ def test_analyse_document_success(client):
         data = response.get_json()
         
         assert response.status_code == 200
-        assert len(data["findings"]) == 1
+        assert "risks" in data
+        assert len(data["risks"]) == 1
 
 # 9. I'm testing my input sanitiser to ensure it blocks my simulated injection attacks.
 def test_sanitisation_blocks_injection(client):

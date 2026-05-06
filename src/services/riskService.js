@@ -1,7 +1,7 @@
 import api from "./api";
 import { mockRisks, mockStats, mockAiAnalysis, mockAiAnswer } from "./mockData";
 
-const USE_MOCK = true; // Change to false when backend is ready
+const USE_MOCK = false; // Real backend is ready
 
 // ─── RISKS ───────────────────────────────────────────────
 
