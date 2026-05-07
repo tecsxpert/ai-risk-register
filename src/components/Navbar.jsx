@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -11,10 +12,12 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, logoutUser } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logoutUser();
     navigate("/login");
+    setMenuOpen(false);
   };
 
   const navLinks = [
@@ -25,28 +28,33 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  const handleNavClick = (path) => {
+    navigate(path);
+    setMenuOpen(false);
+  };
+
   return (
-    <nav className="bg-blue-900 text-white px-6 py-3 flex justify-between items-center shadow sticky top-0 z-40">
+    <nav className="bg-blue-900 text-white shadow relative z-40">
+      <div className="px-4 sm:px-6 py-3 flex justify-between items-center">
 
-      {/* Left — Logo + Nav Links */}
-      <div className="flex items-center gap-6">
-
-        {/* Logo */}
+        {/* Left — Logo */}
         <div
-          className="flex items-center gap-2 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer flex-shrink-0"
           onClick={() => navigate("/dashboard")}
         >
           <span className="text-xl">🛡️</span>
-          <span className="font-bold text-lg hidden sm:block">AI Risk Register</span>
+          <span className="font-bold text-base sm:text-lg tracking-tight">
+            AI Risk Register
+          </span>
         </div>
 
-        {/* Nav Links — only show when logged in */}
+        {/* Centre — Nav Links — hidden on mobile */}
         {isAuthenticated && (
-          <div className="flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <button
                 key={link.path}
-                onClick={() => navigate(link.path)}
+                onClick={() => handleNavClick(link.path)}
                 className={`px-3 py-1.5 rounded-lg text-sm transition ${
                   isActive(link.path)
                     ? "bg-white text-blue-900 font-semibold"
@@ -58,54 +66,99 @@ const Navbar = () => {
             ))}
           </div>
         )}
+
+        {/* Right — User info — hidden on mobile */}
+        {isAuthenticated && user && (
+          <div className="hidden md:flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center font-bold text-xs">
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex flex-col leading-tight">
+                <span className="text-sm font-medium">{user.name}</span>
+                <span className="text-xs text-blue-300">{user.email}</span>
+              </div>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full text-white font-semibold ${
+                  roleBadgeStyles[user.role] || "bg-gray-500"
+                }`}
+              >
+                {user.role}
+              </span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-sm bg-blue-800 hover:bg-red-600 px-3 py-1.5 rounded-lg transition"
+            >
+              Logout
+            </button>
+          </div>
+        )}
+
+        {/* Hamburger — mobile only */}
+        {isAuthenticated && (
+          <button
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="md:hidden flex flex-col gap-1.5 p-2 rounded-lg hover:bg-blue-800 transition"
+            aria-label="Toggle menu"
+          >
+            <span className={`block w-5 h-0.5 bg-white transition-transform ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
+            <span className={`block w-5 h-0.5 bg-white transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
+            <span className={`block w-5 h-0.5 bg-white transition-transform ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+          </button>
+        )}
       </div>
 
-      {/* Right — User info and logout */}
-      {isAuthenticated && user ? (
-        <div className="flex items-center gap-4">
+      {/* Mobile Menu Dropdown */}
+      {isAuthenticated && menuOpen && (
+        <div className="md:hidden bg-blue-800 px-4 pb-4 flex flex-col gap-1 border-t border-blue-700">
 
-          {/* User Info */}
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center font-bold text-white text-xs">
-              {user.name?.charAt(0).toUpperCase()}
-            </div>
-            <div className="hidden sm:flex flex-col leading-tight">
-              <span className="text-white text-xs font-semibold">
-                {user.name}
-              </span>
-              <span className="text-blue-300 text-xs">{user.email}</span>
-            </div>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full text-white font-semibold ${
-                roleBadgeStyles[user.role] || "bg-gray-500"
+          {/* Nav links */}
+          {navLinks.map((link) => (
+            <button
+              key={link.path}
+              onClick={() => handleNavClick(link.path)}
+              className={`w-full text-left px-4 py-3 rounded-lg text-sm transition ${
+                isActive(link.path)
+                  ? "bg-white text-blue-900 font-semibold"
+                  : "text-blue-100 hover:bg-blue-700"
               }`}
             >
-              {user.role}
-            </span>
-          </div>
+              {link.label}
+            </button>
+          ))}
 
           {/* Divider */}
-          <div className="w-px h-6 bg-blue-700"></div>
+          <div className="border-t border-blue-700 my-2" />
+
+          {/* User info */}
+          {user && (
+            <div className="flex items-center gap-3 px-4 py-2">
+              <div className="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center font-bold text-sm">
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-blue-300">{user.email}</p>
+              </div>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full text-white font-semibold ml-auto ${
+                  roleBadgeStyles[user.role] || "bg-gray-500"
+                }`}
+              >
+                {user.role}
+              </span>
+            </div>
+          )}
 
           {/* Logout */}
           <button
             onClick={handleLogout}
-            className="text-sm bg-blue-800 hover:bg-red-600 px-3 py-1.5 rounded-lg transition flex items-center gap-1"
+            className="w-full text-left px-4 py-3 rounded-lg text-sm text-red-300 hover:bg-blue-700 transition"
           >
-            <span>⎋</span>
-            <span className="hidden sm:block">Logout</span>
+            ⏻ Logout
           </button>
         </div>
-      ) : (
-        // Show login button if not authenticated
-        !isAuthenticated && location.pathname !== "/login" && (
-          <button
-            onClick={() => navigate("/login")}
-            className="text-sm bg-blue-800 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition"
-          >
-            Login
-          </button>
-        )
       )}
     </nav>
   );
