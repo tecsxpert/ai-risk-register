@@ -21,6 +21,7 @@ import KpiCard from "../components/KpiCard";
 import CardSkeleton from "../components/CardSkeleton";
 import ChartSkeleton from "../components/ChartSkeleton";
 import AiReportModal from "../components/AiReportModal";
+import PageWrapper from "../components/PageWrapper";
 
 const PIE_COLORS = ["#EF4444", "#EAB308", "#22C55E"];
 const BAR_COLOR = "#1B4F8A";
@@ -65,6 +66,7 @@ const DashboardPage = () => {
   }, []);
 
   return (
+   <PageWrapper>
     <div className="p-6 max-w-7xl mx-auto">
 
       {/* Page Header */}
@@ -359,6 +361,7 @@ const DashboardPage = () => {
       )}
 
     </div>
+    </PageWrapper>
   );
 };
 

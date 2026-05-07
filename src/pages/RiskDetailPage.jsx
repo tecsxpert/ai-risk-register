@@ -9,6 +9,7 @@ import ScoreMeter from "../components/ScoreMeter";
 import InfoField from "../components/InfoField";
 import ConfirmModal from "../components/ConfirmModal";
 import AiAnalysisCard from "../components/AiAnalysisCard";
+import PageWrapper from "../components/PageWrapper";
 
 const RiskDetailPage = () => {
   const { id } = useParams();
@@ -74,6 +75,7 @@ const RiskDetailPage = () => {
   }
 
   return (
+    <PageWrapper>
     <div className="p-6 max-w-4xl mx-auto">
 
       {/* Back Button */}
@@ -214,6 +216,7 @@ const RiskDetailPage = () => {
         />
       )}
     </div>
+    </PageWrapper>
   );
 };
 

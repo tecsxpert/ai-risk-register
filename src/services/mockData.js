@@ -157,3 +157,50 @@ export const mockAnalyticsData = {
     { category: "Financial", avgDays: 15 },
   ],
 };
+export const mockDetailedAnalytics = {
+  // Score over time per category
+  categoryTrend: [
+    { month: "Nov", Security: 70, "AI Risk": 50, Compliance: 60, Operational: 30 },
+    { month: "Dec", Security: 72, "AI Risk": 55, Compliance: 65, Operational: 28 },
+    { month: "Jan", Security: 78, "AI Risk": 58, Compliance: 70, Operational: 32 },
+    { month: "Feb", Security: 80, "AI Risk": 60, Compliance: 72, Operational: 35 },
+    { month: "Mar", Security: 83, "AI Risk": 61, Compliance: 75, Operational: 30 },
+    { month: "Apr", Security: 85, "AI Risk": 62, Compliance: 78, Operational: 30 },
+  ],
+
+  // Weekly new risks added
+  weeklyNew: [
+    { week: "W1 Apr", count: 1 },
+    { week: "W2 Apr", count: 2 },
+    { week: "W3 Apr", count: 1 },
+    { week: "W4 Apr", count: 1 },
+  ],
+
+  // Risk closure rate
+  closureRate: [
+    { month: "Nov", opened: 1, closed: 0 },
+    { month: "Dec", opened: 2, closed: 0 },
+    { month: "Jan", opened: 1, closed: 1 },
+    { month: "Feb", opened: 2, closed: 0 },
+    { month: "Mar", opened: 1, closed: 0 },
+    { month: "Apr", opened: 2, closed: 1 },
+  ],
+
+  // Risk age buckets
+  riskAge: [
+    { bucket: "0-7 days", count: 1 },
+    { bucket: "8-14 days", count: 1 },
+    { bucket: "15-30 days", count: 2 },
+    { bucket: "31-60 days", count: 1 },
+    { bucket: "60+ days", count: 0 },
+  ],
+
+  // Heatmap data — category vs priority
+  heatmap: [
+    { category: "Security", High: 2, Medium: 0, Low: 0 },
+    { category: "AI Risk", High: 0, Medium: 1, Low: 0 },
+    { category: "Compliance", High: 1, Medium: 0, Low: 0 },
+    { category: "Operational", High: 0, Medium: 0, Low: 1 },
+    { category: "Financial", High: 0, Medium: 0, Low: 0 },
+  ],
+};
