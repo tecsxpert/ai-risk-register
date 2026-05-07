@@ -1,21 +1,41 @@
-const ConfirmModal = ({ message, onConfirm, onCancel }) => {
+const ConfirmModal = ({ message, onConfirm, onCancel, title = "Confirm Action", confirmLabel = "Yes, Delete", confirmVariant = "danger" }) => {
+  const confirmStyles = {
+    danger: "bg-red-500 hover:bg-red-600 text-white",
+    primary: "bg-[#1B4F8A] hover:bg-[#163d6e] text-white",
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
-        <h2 className="text-lg font-bold text-gray-800 mb-2">Confirm Action</h2>
-        <p className="text-gray-600 text-sm mb-6">{message}</p>
-        <div className="flex gap-3 justify-end">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-modal w-full max-w-sm animate-slideUp">
+
+        {/* Icon */}
+        <div className="flex flex-col items-center pt-8 pb-4 px-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <span className="text-3xl">🗑️</span>
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 text-center mb-2">
+            {title}
+          </h2>
+          <p className="text-gray-500 text-sm text-center leading-relaxed">
+            {message}
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 px-6 pb-6 pt-2">
           <button
             onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition text-sm"
+            className="flex-1 min-h-[44px] border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition font-semibold text-sm"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
+            className={`flex-1 min-h-[44px] rounded-xl font-semibold text-sm transition active:scale-95 ${
+              confirmStyles[confirmVariant] || confirmStyles.danger
+            }`}
           >
-            Yes, Delete
+            {confirmLabel}
           </button>
         </div>
       </div>

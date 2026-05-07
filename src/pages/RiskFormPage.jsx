@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getRiskById, createRisk, updateRisk } from "../services/riskService";
+import { useToast } from "../components/Toast";
 import validateRisk from "../services/validateRisk";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
+import PageWrapper from "../components/PageWrapper";
 
-const CATEGORIES = ["Security", "AI Risk", "Compliance", "Operational", "Financial", "Reputational"];
+const CATEGORIES = [
+  "Security",
+  "AI Risk",
+  "Compliance",
+  "Operational",
+  "Financial",
+  "Reputational",
+];
 const STATUSES = ["Open", "In Progress", "Resolved"];
 const PRIORITIES = ["High", "Medium", "Low"];
 
@@ -22,37 +31,47 @@ const emptyForm = {
 const RiskFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const isEditing = Boolean(id);
 
   const [formData, setFormData] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(isEditing);
   const [submitError, setSubmitError] = useState("");
 
-  // If editing, load existing data
+  // If editing load existing data
   useEffect(() => {
     if (isEditing) {
-      getRiskById(id).then((data) => {
-        if (data) {
-          setFormData({
-            title: data.title,
-            category: data.category,
-            status: data.status,
-            priority: data.priority,
-            owner: data.owner,
-            score: data.score,
-            description: data.description || "",
-          });
-        }
-      });
+      setFetchLoading(true);
+      getRiskById(id)
+        .then((data) => {
+          if (data) {
+            setFormData({
+              title: data.title || "",
+              category: data.category || "",
+              status: data.status || "",
+              priority: data.priority || "",
+              owner: data.owner || "",
+              score: data.score || "",
+              description: data.description || "",
+            });
+          }
+        })
+        .catch(() => {
+          addToast("Failed to load risk data.", "error");
+        })
+        .finally(() => {
+          setFetchLoading(false);
+        });
     }
   }, [id, isEditing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error for that field as user types
     setErrors((prev) => ({ ...prev, [name]: "" }));
+    setSubmitError("");
   };
 
   const handleSubmit = async (e) => {
@@ -63,36 +82,66 @@ const RiskFormPage = () => {
     const validationErrors = validateRisk(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      addToast("Please fix the errors before submitting.", "warning");
       return;
     }
 
     setLoading(true);
-
     try {
       if (isEditing) {
         await updateRisk(id, formData);
       } else {
         await createRisk(formData);
       }
+      addToast(
+        isEditing
+          ? "Risk updated successfully!"
+          : "Risk created successfully!",
+        "success"
+      );
       navigate("/risks");
     } catch (err) {
+      addToast("Something went wrong. Please try again.", "error");
       setSubmitError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Loading state while fetching existing risk
+  if (fetchLoading) {
+    return (
+      <div className="p-6 max-w-2xl mx-auto animate-pulse">
+        <div className="h-4 bg-gray-200 rounded w-28 mb-6"></div>
+        <div className="bg-white rounded-xl shadow p-6">
+          <div className="h-7 bg-gray-200 rounded w-48 mb-6"></div>
+          <div className="flex flex-col gap-5">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex flex-col gap-2">
+                <div className="h-3 bg-gray-200 rounded w-24"></div>
+                <div className="h-10 bg-gray-200 rounded-lg"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
+    <PageWrapper>
     <div className="p-6 max-w-2xl mx-auto">
+
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate("/risks")}
-          className="text-blue-900 hover:underline text-sm"
+          className="text-blue-900 hover:underline text-sm flex items-center gap-1"
         >
           ← Back to List
         </button>
-        <h1 className="text-2xl font-bold text-gray-800">
+        <span className="text-gray-300">|</span>
+        <h1 className="text-xl font-bold text-gray-800">
           {isEditing ? "Edit Risk" : "Create New Risk"}
         </h1>
       </div>
@@ -112,7 +161,7 @@ const RiskFormPage = () => {
           />
 
           {/* Category and Status */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect
               label="Category *"
               name="category"
@@ -132,7 +181,7 @@ const RiskFormPage = () => {
           </div>
 
           {/* Priority and Score */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect
               label="Priority *"
               name="priority"
@@ -174,13 +223,38 @@ const RiskFormPage = () => {
               rows={4}
               placeholder="Describe the risk in detail..."
               className={`border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                errors.description ? "border-red-500 bg-red-50" : "border-gray-300"
+                errors.description
+                  ? "border-red-500 bg-red-50"
+                  : "border-gray-300"
               }`}
             />
             {errors.description && (
               <p className="text-red-500 text-xs mt-1">{errors.description}</p>
             )}
           </div>
+
+          {/* Score indicator */}
+          {formData.score && !errors.score && (
+            <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3">
+              <span className="text-sm text-gray-600">Risk Level:</span>
+              <span
+                className={`text-sm font-bold px-3 py-1 rounded-full ${
+                  formData.score >= 70
+                    ? "bg-red-100 text-red-700"
+                    : formData.score >= 50
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-green-100 text-green-700"
+                }`}
+              >
+                {formData.score >= 70
+                  ? "🔴 High Risk"
+                  : formData.score >= 50
+                  ? "🟡 Medium Risk"
+                  : "🟢 Low Risk"}{" "}
+                — Score: {formData.score}
+              </span>
+            </div>
+          )}
 
           {/* Submit Error */}
           {submitError && (
@@ -197,12 +271,31 @@ const RiskFormPage = () => {
               className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {loading && (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                <svg
+                  className="animate-spin h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
                 </svg>
               )}
-              {loading ? "Saving..." : isEditing ? "Update Risk" : "Create Risk"}
+              {loading
+                ? "Saving..."
+                : isEditing
+                ? "Update Risk"
+                : "Create Risk"}
             </button>
             <button
               type="button"
@@ -212,10 +305,10 @@ const RiskFormPage = () => {
               Cancel
             </button>
           </div>
-
         </form>
       </div>
     </div>
+    </PageWrapper>
   );
 };
 
