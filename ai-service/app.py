@@ -6,6 +6,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 from middleware.sanitizer import sanitize_input, SanitizationError
+from routes.ai_routes import ai_bp
 
 # Configure logging
 logging.basicConfig(
@@ -29,6 +30,9 @@ limiter = Limiter(
 )
 
 logger.info("Flask app initialized with rate limiting (30 req/min)")
+
+# Register blueprints
+app.register_blueprint(ai_bp)
 
 
 @app.before_request
