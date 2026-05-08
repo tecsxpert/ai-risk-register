@@ -70,12 +70,20 @@ const AnalyticsPage = () => {
 
   // Filter data by period
   const getFilteredTrend = () => {
-    const all = mockAnalyticsData.monthlyTrend;
-    if (period === "4w") return mockDetailedAnalytics.weeklyNew;
-    if (period === "3m") return all.slice(-3);
-    if (period === "6m") return all.slice(-6);
-    return all;
-  };
+  if (period === "4w") {
+    return mockDetailedAnalytics.weeklyNew;
+  }
+
+  // For monthly periods — create count from mockAnalyticsData.monthlyTrend
+  const all = mockAnalyticsData.monthlyTrend.map((item) => ({
+    month: item.month,
+    count: item.open + item.inProgress + item.resolved,
+  }));
+
+  if (period === "3m") return all.slice(-3);
+  if (period === "6m") return all.slice(-6);
+  return all;
+};
 
   const getFilteredCategoryTrend = () => {
     const all = mockDetailedAnalytics.categoryTrend;
@@ -176,26 +184,26 @@ const AnalyticsPage = () => {
           >
             <ResponsiveContainer width="100%" height={230}>
               <LineChart
-                data={getFilteredTrend()}
-                margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis
-                  dataKey={period === "4w" ? "week" : "month"}
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  name="Risks"
-                  stroke="#1B4F8A"
-                  strokeWidth={2.5}
-                  dot={{ r: 4, fill: "#1B4F8A" }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
+  data={getFilteredTrend()}
+  margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
+>
+  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+  <XAxis
+    dataKey={period === "4w" ? "week" : "month"}  // ✅ this is correct
+    tick={{ fontSize: 10 }}
+  />
+  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+  <Tooltip content={<CustomTooltip />} />
+  <Line
+    type="monotone"
+    dataKey="count"   // ✅ now all periods have count field
+    name="Risks"
+    stroke="#1B4F8A"
+    strokeWidth={2.5}
+    dot={{ r: 4, fill: "#1B4F8A" }}
+    activeDot={{ r: 6 }}
+  />
+</LineChart>
             </ResponsiveContainer>
           </ChartCard>
         )}
