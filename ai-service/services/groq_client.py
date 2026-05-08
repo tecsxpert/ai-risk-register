@@ -4,7 +4,17 @@ import logging
 import time
 from typing import Optional, Dict, Any
 from groq import Groq
-from groq.error import APIError, APIConnectionError, RateLimitError
+try:
+    from groq.error import APIError, APIConnectionError, RateLimitError
+except ImportError:
+    # Fallback for different groq versions
+    try:
+        from groq._exceptions import APIError, APIConnectionError, RateLimitError
+    except ImportError:
+        # Generic exception fallback
+        APIError = Exception
+        APIConnectionError = Exception
+        RateLimitError = Exception
 
 # Configure logging
 logger = logging.getLogger(__name__)
