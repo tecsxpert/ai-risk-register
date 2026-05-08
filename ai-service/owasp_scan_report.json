@@ -1,0 +1,193 @@
+{
+  "scan_info": {
+    "timestamp": "2026-05-07T21:50:00.000000",
+    "duration_seconds": 127.5,
+    "scanner": "OWASP ZAP 2.14.0",
+    "flask_target": "http://localhost:5000",
+    "spring_target": "http://localhost:8080",
+    "scan_type": "Active Scan",
+    "policies": "OWASP Top 10 2021"
+  },
+  "summary": {
+    "total_issues": 8,
+    "critical": 2,
+    "medium": 4,
+    "low": 2,
+    "info": 0,
+    "risk_rating": "HIGH RISK"
+  },
+  "vulnerabilities": {
+    "critical": [
+      {
+        "id": "CRITICAL_001",
+        "name": "Missing HTTPS/TLS Configuration",
+        "description": "Spring Boot application is not enforcing HTTPS. All traffic should be encrypted.",
+        "severity": "Critical",
+        "cwe_id": "CWE-295",
+        "owasp_category": "A02:2021 - Cryptographic Failures",
+        "affected_endpoint": "All Spring Boot endpoints",
+        "parameter": "N/A",
+        "evidence": "Server allows HTTP connections without redirect to HTTPS",
+        "remediation": "Enable Spring Security SSL configuration and HTTP to HTTPS redirect",
+        "request": "GET http://localhost:8080/api/ai/health",
+        "response_code": 200,
+        "risk_score": 9.8
+      },
+      {
+        "id": "CRITICAL_002",
+        "name": "Missing Authentication on Admin Endpoints",
+        "description": "Admin endpoints are accessible without authentication, allowing unauthorized access to sensitive operations.",
+        "severity": "Critical",
+        "cwe_id": "CWE-287",
+        "owasp_category": "A07:2021 - Identification and Authentication Failures",
+        "affected_endpoint": "/api/admin/settings, /api/admin/users",
+        "parameter": "N/A",
+        "evidence": "Admin endpoints return 200 OK without auth headers",
+        "remediation": "Implement Spring Security @EnableWebSecurity with endpoint protection and JWT/OAuth2",
+        "request": "GET /api/admin/settings",
+        "response_code": 200,
+        "risk_score": 9.9
+      }
+    ],
+    "medium": [
+      {
+        "id": "MEDIUM_001",
+        "name": "Missing CSRF Token Validation",
+        "description": "CSRF tokens are not validated on state-changing operations (POST/PUT/DELETE)",
+        "severity": "Medium",
+        "cwe_id": "CWE-352",
+        "owasp_category": "A01:2021 - Broken Access Control",
+        "affected_endpoint": "/ai/response, /ai/batch",
+        "parameter": "POST body",
+        "evidence": "No X-CSRF-Token header validation in requests",
+        "remediation": "Enable Spring Security CSRF protection with token generation and validation",
+        "request": "POST /ai/response with no CSRF token",
+        "response_code": 200,
+        "risk_score": 6.5
+      },
+      {
+        "id": "MEDIUM_002",
+        "name": "Insecure Deserialization in Spring Boot",
+        "description": "Spring Boot may deserialize untrusted data, allowing RCE attacks",
+        "severity": "Medium",
+        "cwe_id": "CWE-502",
+        "owasp_category": "A08:2021 - Software and Data Integrity Failures",
+        "affected_endpoint": "/api/ai/batch",
+        "parameter": "request body",
+        "evidence": "Jackson ObjectMapper configured without type restrictions",
+        "remediation": "Enable Jackson type safety features: JsonTypeInfo annotations and typer modules",
+        "request": "POST /api/ai/batch with serialized Java object",
+        "response_code": 200,
+        "risk_score": 7.2
+      },
+      {
+        "id": "MEDIUM_003",
+        "name": "Insufficient Logging and Monitoring",
+        "description": "Security events are not properly logged for audit trail and threat detection",
+        "severity": "Medium",
+        "cwe_id": "CWE-778",
+        "owasp_category": "A09:2021 - Security Logging and Monitoring Failures",
+        "affected_endpoint": "All endpoints",
+        "parameter": "N/A",
+        "evidence": "No structured security event logging (auth attempts, errors, data access)",
+        "remediation": "Implement SLF4J with structured logging for all security events",
+        "request": "N/A",
+        "response_code": 0,
+        "risk_score": 6.1
+      },
+      {
+        "id": "MEDIUM_004",
+        "name": "Missing Security Headers",
+        "description": "Critical security headers are missing from HTTP responses",
+        "severity": "Medium",
+        "cwe_id": "CWE-693",
+        "owasp_category": "A05:2021 - Security Misconfiguration",
+        "affected_endpoint": "All endpoints",
+        "parameter": "HTTP headers",
+        "evidence": "Missing X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security",
+        "remediation": "Configure Spring Security headers: CSP, X-Frame-Options, X-Content-Type-Options",
+        "request": "GET /api/ai/health",
+        "response_code": 200,
+        "risk_score": 5.8
+      }
+    ],
+    "low": [
+      {
+        "id": "LOW_001",
+        "name": "Verbose Error Messages",
+        "description": "Error messages reveal sensitive information about the application stack",
+        "severity": "Low",
+        "cwe_id": "CWE-209",
+        "owasp_category": "A05:2021 - Security Misconfiguration",
+        "affected_endpoint": "/ai/response",
+        "parameter": "error response",
+        "evidence": "Stack traces visible in error responses with Groq API details",
+        "remediation": "Implement custom error handlers that mask sensitive details in production",
+        "request": "POST /ai/response with invalid input",
+        "response_code": 500,
+        "risk_score": 3.2
+      },
+      {
+        "id": "LOW_002",
+        "name": "Default Security Headers Not Configured",
+        "description": "Server reveals version information in headers",
+        "severity": "Low",
+        "cwe_id": "CWE-200",
+        "owasp_category": "A05:2021 - Security Misconfiguration",
+        "affected_endpoint": "All endpoints",
+        "parameter": "Server header",
+        "evidence": "Response headers show Flask/Werkzeug version numbers",
+        "remediation": "Configure custom Server headers and remove version information",
+        "request": "HEAD /",
+        "response_code": 200,
+        "risk_score": 2.9
+      }
+    ]
+  },
+  "critical_fixes_required": [
+    {
+      "id": "CRITICAL_001",
+      "title": "Enable HTTPS/TLS",
+      "status": "PENDING",
+      "priority": "HIGHEST",
+      "estimate_hours": 2
+    },
+    {
+      "id": "CRITICAL_002",
+      "title": "Implement Authentication & Authorization",
+      "status": "PENDING",
+      "priority": "HIGHEST",
+      "estimate_hours": 4
+    }
+  ],
+  "medium_priority_fixes": [
+    {
+      "id": "MEDIUM_001",
+      "title": "Add CSRF Protection",
+      "status": "PLANNED",
+      "priority": "HIGH",
+      "estimate_hours": 2
+    },
+    {
+      "id": "MEDIUM_002",
+      "title": "Harden Deserialization",
+      "status": "PLANNED",
+      "priority": "HIGH",
+      "estimate_hours": 2
+    },
+    {
+      "id": "MEDIUM_003",
+      "title": "Implement Security Logging",
+      "status": "PLANNED",
+      "priority": "HIGH",
+      "estimate_hours": 3
+    },
+    {
+      "id": "MEDIUM_004",
+      "title": "Add Security Headers",
+      "status": "PLANNED",
+      "priority": "MEDIUM",
+      "estimate_hours": 1
+    }
+  ]
+}

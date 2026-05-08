@@ -35,6 +35,18 @@ logger.info("Flask app initialized with rate limiting (30 req/min)")
 app.register_blueprint(ai_bp)
 
 
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses (LOW_002 FIX)"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    response.headers['Server'] = 'SecurityEnhanced/1.0'  # Hide version info
+    return response
+
+
 @app.before_request
 def sanitize_request_data():
     """
